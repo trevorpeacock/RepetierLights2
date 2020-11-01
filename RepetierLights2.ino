@@ -1,84 +1,15 @@
 #include <FastLED.h>
+#include "common.h"
+#include "status_led.h"
+#include "buttons.h"
 
-#define NUM_LEDS         24
+DoorPattern doorpattern1 = DoorPattern(-1);
+DoorPattern doorpattern2 = DoorPattern(1);
 
-CRGB p1_status_leds[NUM_LEDS];
-CRGB p2_status_leds[NUM_LEDS];
-
-CRGB status_col;
-CRGB status_col_background;
-byte status_complete;
-
-/*
- * base class, by default blanks all LEDs
- */
-class Pattern {
-  public:
-    //This is called everytime the pattern starts to be used
-    virtual void setup() {
-    }
-    //Called every frame. Pattern should be supplied to provided buffer
-    virtual void update(CRGB ledbuffer[]) {
-      for (int i = 0; i < NUM_LEDS; i++) {
-        ledbuffer[i] = CRGB::Black;
-      }
-    }
-};
-
-class DoorPattern: public Pattern {
-
-    int flow_position;
-
-  public:
-    DoorPattern() {
-    }
-
-    virtual void setup() {
-      flow_position = 0;
-    }
-
-    virtual void update(CRGB ledbuffer[]) {
-      for (int i = 0; i < NUM_LEDS; i++) {
-          ledbuffer[i]=CRGB::Blue;
-      }
-    }
-};
-
-DoorPattern doorpattern = DoorPattern();
-
-
-#define RELAY1_PIN 8
-#define RELAY2_PIN 7
-#define RELAY3_PIN 4
-#define RELAY4_PIN 2
-
-
-//6 pwm:
-//2x Extruder
-//2x Printer
-//2x Overhead
-
-#define P1_EXTRUDER_PIN 11
-#define P1_PRINTER_PIN 10
-#define P1_OVERHEAD_PIN 9
-
-#define P2_EXTRUDER_PIN 6
-#define P2_PRINTER_PIN 5
-#define P2_OVERHEAD_PIN 3
-
-//8 + 8 io
-//(6) button x 2-3
-#define P1_BUTTON_PIN A7
-
-#define P2_BUTTON_PIN A6
-
-//(4) relay x 4
-#define P1_POWER_PIN RELAY1_PIN
-#define P1_POWER_PIN RELAY2_PIN
-
-//(2) neopixel
-#define P1_LEDBAR_PIN A5
-#define P2_LEDBAR_PIN A4
+ButtonPanel buttonpanel1 = ButtonPanel(P1_BUTTON_PIN);
+ButtonController buttoncontroller1(&buttonpanel1, P1_EXTRUDER_PIN, P1_PRINTER_PIN, P1_OVERHEAD_PIN);
+ButtonPanel buttonpanel2 = ButtonPanel(P2_BUTTON_PIN);
+ButtonController buttoncontroller2(&buttonpanel2, P2_EXTRUDER_PIN, P2_PRINTER_PIN, P2_OVERHEAD_PIN);
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -87,6 +18,13 @@ void setup() {
   status_col_background=CRGB::Blue;
   status_complete=128;
 
+  buttonpanel1.setup();
+  buttoncontroller1.setup();
+  buttonpanel2.setup();
+  buttoncontroller2.setup();
+  
+  doorpattern1.setup();
+  doorpattern2.setup();
   FastLED.addLeds<NEOPIXEL, P1_LEDBAR_PIN>(p1_status_leds, NUM_LEDS);
   FastLED.addLeds<NEOPIXEL, P2_LEDBAR_PIN>(p2_status_leds, NUM_LEDS);
 
@@ -109,15 +47,13 @@ void setup() {
 }
 
 void loop() {
-  p1_status_leds[0] = CRGB::Green;
-  p2_status_leds[0] = CRGB::Black;
-  int a = analogRead(P1_BUTTON_PIN);
-  analogWrite(P1_EXTRUDER_PIN, a/4);
+  //digitalWrite(POWER_RELAY_PIN, power_relay_status);
+  buttoncontroller1.update();
+  buttoncontroller2.update();
+  doorpattern1.update(p1_status_leds);
+  doorpattern2.update(p2_status_leds);
   FastLED.show();
-  delay(500);
-  p1_status_leds[0] = CRGB::Black;
-  p2_status_leds[0] = CRGB::White;
-  //analogWrite(P1_EXTRUDER_PIN, 10);
-  FastLED.show();
-  delay(500);
+  //commandqueue = commandqueue + Serial.readString();
+  //check_serial();
+  delay(33);
 }
