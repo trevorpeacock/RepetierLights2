@@ -89,19 +89,19 @@ class ButtonController {
       }
 
       if(_stat_ext) {
-        analogWrite(_pwm_ext, 255);
+        analogWrite(_pwm_ext, 128);
       } else {
-        analogWrite(_pwm_ext, 0);
+        analogWrite(_pwm_ext, 2);
       }
       if(_stat_print) {
-        analogWrite(_pwm_prnt, 255);
+        analogWrite(_pwm_prnt, 128);
       } else {
-        analogWrite(_pwm_prnt, 0);
+        analogWrite(_pwm_prnt, 8);
       }
       if(_stat_ohead) {
-        analogWrite(_pwm_ohead, 255);
+        analogWrite(_pwm_ohead, 128);
       } else {
-        analogWrite(_pwm_ohead, 0);
+        analogWrite(_pwm_ohead, 2);
       }
       
     }
